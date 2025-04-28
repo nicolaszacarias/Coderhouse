@@ -2,7 +2,7 @@ import fs from "fs";
 
 class ProductManager {
     constructor(){
-        this.path = "./products.json";
+        this.path = "./data/products.json";
     }
 
     generateId = (products) => {
@@ -20,7 +20,7 @@ class ProductManager {
     }
 
     // Crear los Productos
-    createProducts = async(newProduct) => {
+    createsProduct = async(newProduct) => {
         const productsJson = await fs.promises.readFile(this.path, "utf-8")
         const products = JSON.parse(productsJson)
         const id = this.generateId(products);

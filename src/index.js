@@ -28,13 +28,13 @@ server.get("/api/products/:pid", async (req, res) => {
 server.post("/api/products/", async (req, res) => {
     const newProduct = req.body;
     // validar que ningun producto no tenga estos campos: 
-    const requiredFields = ["title", "description", "code", "price", "status", "stock", "category", "thumbnails"];
+    const requiredFields = ["title", "description", "code", "price", "status", "stock", "category"];
     const missingFields = requiredFields.filter(field => !newProduct.hasOwnProperty(field));
     if (missingFields.length > 0) {
         return res.status(400).json({ message: `Faltan campos obligatorios: ${missingFields.join(", ")}` });
     }
     try {
-        const products = await productManager.createProducts(newProduct);
+        const products = await productManager.createProduct(newProduct);
         res.status(201).json({ message: "Producto creado correctamente", products });
     } catch (error) {
         res.status(500).json({ message: "Error al crear el producto", error: error.message });

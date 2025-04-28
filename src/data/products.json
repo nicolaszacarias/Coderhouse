@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "title": "hola",
+    "description": "Una descripción",
+    "code": "ABC123",
+    "price": 500,
+    "status": true,
+    "stock": 10,
+    "category": "tecnología",
+    "thumbnails": [
+      "img1.jpg",
+      "img2.jpg"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Producto ejemplo1",
+    "description": "Una descripción1",
+    "code": "ABC124",
+    "price": 5000,
+    "status": true,
+    "stock": 100,
+    "category": "tecnologíaa",
+    "thumbnails": [
+      "img4.jpg",
+      "img5.jpg"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "a",
+    "description": "as",
+    "code": "100",
+    "price": "500",
+    "stock": "500",
+    "category": "compus"
+  },
+  {
+    "id": 4,
+    "title": "asas",
+    "description": "asada",
+    "code": "sas",
+    "price": "100",
+    "stock": "1",
+    "category": "compus"
+  },
+  {
+    "id": 5,
+    "title": "holas",
+    "description": "holass",
+    "code": "holasss",
+    "price": "4512",
+    "stock": "444",
+    "category": "compus"
+  },
+  {
+    "id": 6,
+    "title": "asd",
+    "description": "asd",
+    "code": "asd",
+    "price": "4",
+    "stock": "53",
+    "category": "compus"
+  }
+]
