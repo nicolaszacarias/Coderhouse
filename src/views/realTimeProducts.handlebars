@@ -13,11 +13,11 @@
 
 <div id="productList" class="product-grid">
   {{#each products}}
-    <div class="product-card" data-id="{{this._id}}">
-      <h2 class="product-title">{{this.title}}</h2>
-      <h3 class="product-price">Precio: ${{this.price}}</h3>
-      <button class="add-to-cart-btn btn" data-id="{{this._id}}">Agregar al carrito</button>
-      <button class="delete-btn btn" data-id="{{this._id}}">Eliminar</button>
+    <div data-id="{{this._id}}">
+      <h2 >{{this.title}}</h2>
+      <h3 >Precio: ${{this.price}}</h3>
+      <button  data-id="{{this._id}}">Agregar al carrito</button>
+      <button  data-id="{{this._id}}">Eliminar</button>
     </div>
   {{/each}}
 </div>

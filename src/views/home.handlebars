@@ -1,15 +1,57 @@
 <div>
-    <h1>Home</h1>
-    <h2>Lista de Productos</h2>
-    <a href="/carts/{{this._id}}">Ver Carrito</a>
-    <ul>
-        {{#each products}}
-    <h2>{{this.title}}</h2>
-    <h3>Precio: ${{this.price}}</h3>
-    <p>{{this.description}}</p>
-    <p>Categoría: {{this.category}}</p>
-    <a href="/products/{{this._id}}">Ver descripción</a>
-        {{/each}}
-    </ul>
-
+  <h1>Home</h1>
+  <h2>Lista de Productos</h2>
+  <a href="/carts/{{this._id}}">Ver Carrito</a>
+  <ul>
+    {{#each products}}
+      <li>
+        <h2>{{this.title}}</h2>
+        <h3>Precio: ${{this.price}}</h3>
+        <p>{{this.description}}</p>
+        <p>Categoría: {{this.category}}</p>
+        <a href="/products/{{this._id}}">Ver descripción</a>
+        <button class="add-to-cart-btn" data-id="{{this._id}}">Agregar al carrito</button>
+      </li>
+    {{/each}}
+  </ul>
 </div>
+
+<!-- Script al final -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.body.addEventListener("click", async (event) => {
+      if (event.target.classList.contains("add-to-cart-btn")) {
+        const productId = event.target.dataset.id;
+
+        try {
+          let cartId = localStorage.getItem("cartId");
+
+          // Crear nuevo carrito si no hay uno existente
+          if (!cartId) {
+            const res = await fetch("/api/carts", { method: "POST" });
+            if (!res.ok) throw new Error("No se pudo crear el carrito.");
+            const data = await res.json();
+            cartId = data.payload._id;
+            localStorage.setItem("cartId", cartId);
+          }
+
+          // Agregar producto al carrito
+          const res = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quantity: 1 }),
+          });
+
+          if (!res.ok) {
+            const error = await res.text();
+            console.error("Error al agregar producto:", error);
+          } else {
+            console.log("Producto agregado correctamente al carrito.");
+          }
+        } catch (err) {
+          console.error("Error inesperado:", err);
+        }
+      }
+    });
+  });
+</script>
