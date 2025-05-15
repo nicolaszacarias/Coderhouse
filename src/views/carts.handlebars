@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista del Carrito</title>
+</head>
+<body>
+  <h1 style="text-align: center;">Lista del Carrito</h1>
+  <div>
+    {{#if carts.length}}
+      {{#each carts}}
+        <div>
+          <h2>Carrito ID: {{this._id}}</h2>
+          <ul>
+            {{#if this.products.length}}
+              {{#each this.products}}
+                <li>
+                  Producto: <strong>{{this.product.title}}</strong><br>
+                  Cantidad: {{this.quantity}}
+                </li>
+              {{/each}}
+            {{else}}
+              <li>Este carrito no tiene nada</li>
+            {{/if}}
+          </ul>
+          <a href="/carts/{{this._id}}">Ver productos detallados del carrito carrito</a>
+          <button onclick="deleteCart('{{this._id}}')">Vaciar carrito</button>
+        </div>
+      {{/each}}
+    {{else}}
+      <p>No hay carritos disponibles.</p>
+    {{/if}}
+  </div>
+
+<script>
+  async function deleteCart(cartId) {
+    try {
+      const response = await fetch(`/api/carts/${cartId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        console.log('Carrito eliminado con éxito');
+
+        // Si el carrito eliminado es el que está guardado en localStorage, lo eliminamos
+        const storedCartId = localStorage.getItem('cartId');
+        if (storedCartId === cartId) {
+          localStorage.removeItem('cartId');
+          console.log('cartId eliminado del localStorage');
+        }
+
+        window.location.reload();
+      } else {
+        console.log('Hubo un problema al eliminar el carrito');
+      }
+    } catch (error) {
+      console.error('Error al eliminar el carrito:', error);
+    }
+  }
+</script>
+</body>
+</html>

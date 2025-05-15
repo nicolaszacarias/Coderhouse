@@ -4,133 +4,86 @@ import path from "path";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
-import ProductManager from './productManager.js';
-
-// Importar routers
+import dotenv from "dotenv";
+import connectMongoDB from "./config/db.js";
+import viewsRouter from "./routes/views.routes.js";
 import productsRouter from "./routes/products.routes.js";
 import cartsRouter from "./routes/carts.routes.js";
+import Product from "./models/product.model.js";
+
+// Configuración inicial
+dotenv.config();
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 // Definir rutas y estructura de directorios
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+// Conexión a MongoDB
+connectMongoDB();
 
-
-const productManager = new ProductManager(path.join(__dirname, "data/products.json"));
+// Configuración de Handlebars
+app.engine(
+  "handlebars",
+  engine({
+    runtimeOptions: {
+      allowProtoPropertiesByDefault: true,
+      allowProtoMethodsByDefault: true,
+    },
+    helpers: {
+      json: (context) => JSON.stringify(context, null, 2),
+    },
+  })
+);
+app.set("view engine", "handlebars");
+app.set("views", path.join(__dirname, "views"));
 
 // Middleware
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, "../public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Configuracion de rutas
-app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
+// Pasar la instancia de io a app para usarla en routers
+app.set('io', io);
 
-// Configuración de Handlebars
-app.engine('handlebars', engine());
-app.set('view engine', "handlebars");
-app.set('views', path.join(__dirname, "views"));
+// Configuración de rutas
+app.use("/", viewsRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/carts", cartsRouter);
 
-// Rutas de la aplicación
-app.get('/', async (req, res) => {
+// WebSocket para manejar actualizaciones en tiempo real
+let productsCache = [];
+
+io.on("connection", async (socket) => {
+  console.log("Nuevo cliente conectado");
+
+  // Enviar productos actuales al cliente
   try {
-    const products = await productManager.getAllProducts();
-    res.render('home', { products });
+    const products = await Product.find();
+    productsCache = products; // actualizar cache local
+    socket.emit("product-list", productsCache);
   } catch (error) {
-    console.error('Error al cargar productos:', error);
-    res.status(500).send('Error al cargar productos');
+    console.error("Error al obtener productos para socket:", error);
   }
-});
 
-// Ruta secundaria para "/home"
-app.get('/home', async (req, res) => {
-  try {
-    const products = await productManager.getAllProducts();
-    res.render('home', { products });
-  } catch (error) {
-    console.error('Error al cargar productos en /home:', error);
-    res.status(500).send('Error al cargar productos');
-  }
-});
-
-// Ruta para realtimeproducts
-app.get('/realtimeproducts', async (req, res) => {
-  try {
-      const products = await productManager.getAllProducts(); // Obtener todos los productos
-      res.render('realTimeProducts', { products }); // Pasar los productos a la vista
-  } catch (error) {
-      console.error('Error al cargar productos:', error);
-      res.status(500).send('Error al cargar productos');
-  }
-});
-
-
-// WebSocket para productos en tiempo real
-let products = []; 
-
-// Agregar un nuevo producto usando WebSocket
-app.post('/add-product', (req, res) => {
-  const newProduct = req.body.product;
-  products.push(newProduct);
-
-  // Emitir el nuevo producto a todos los clientes conectados
-  io.emit('new-product', newProduct);
-
-  res.redirect('/');  
-});
-
-
-app.post('/delete-product', (req, res) => {
-  const productToDelete = req.body.product;
-  products = products.filter(p => p.id !== productToDelete.id);
-
-
-  io.emit('delete-product', productToDelete.id);
-
-  res.redirect('/');  
-});
-
-
-io.on('connection', (socket) => {
-  console.log('Nuevo cliente conectado');
-
-
-  socket.emit('product-list', products);
-
-
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado');
-  });
-
-
-  socket.on("newProduct", async (productData) => {
-    try {
-        const newProduct = await productManager.createsProduct(productData);
-        products.push(newProduct);
-        io.emit("productAdded", newProduct);
-    } catch (error) {
-        console.error("Error al añadir el producto", error);
-    }
-});
-
-  // Eliminar producto
-  socket.on("deleteProduct", async (productId) => {
-    try {
-      await productManager.deleteProductsById(productId);
-      products = products.filter(product => product.id !== productId);
-      io.emit("productDeleted", productId);
-    } catch (error) {
-      console.error("Error al eliminar el producto", error);
-    }
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado");
   });
 });
+
+// Inicializar productos en el cache al iniciar el servidor (opcional)
+(async () => {
+  try {
+    productsCache = await Product.find();
+  } catch (error) {
+    console.error("Error al cargar productos en el inicio:", error);
+  }
+})();
 
 // Iniciar el servidor
-const PORT = 8080;
+const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
-  console.log(` Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -62,5 +62,14 @@
     "price": "4",
     "stock": "53",
     "category": "compus"
+  },
+  {
+    "id": 7,
+    "title": "asdasdas",
+    "description": "asdasd",
+    "code": "100",
+    "price": "50000",
+    "stock": "14",
+    "category": "compus"
   }
 ]
